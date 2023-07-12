@@ -9,15 +9,34 @@ rule download_reference_genome:
     shell:
         "gunzip -c {input} > {output}"
 
+index_reference_genome_out = ['hsapiens_v38.gem', 'hsapiens_v38.info']
 
 rule index_reference_genome:
     input: 
         "../data/reference/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"
     output:
-        "../data/reference/GRCh38_no_alt_analysis_set"
+        expand("../data/reference/{out}", out = index_reference_genome_out)
+    params:
+        prefix = "../data/reference/hsapiens_v38"
     log:
-        "../data/reference/gem_indexing.log"
+        "../logs/index_reference_genome/gem_indexing.log"
     conda:
         "gem3"
     shell:
-        "gem-indexer -i {input} -o {output}"
+        "gem-indexer -i {input} -o {params.prefix}"
+
+
+rule gem3_map:
+    input:
+        "../data/reference/hsapiens_v38.BS.gem",
+        "../data/samples/{sample_id}_sampled_R1_001.fq.gz",
+        "../data/samples/{sample_id}_sampled_R2_001.fq.gz",
+    output:
+        "../data/samples-mapped/{sample_id}.bam"
+    log:
+        "../logs/gem3_map/{sample_id}.log"
+    threads: 6
+    conda: "gem3"
+    shell:
+        "gem-mapper -I {input[0]} -t {threads} -1 {input[1]} -2 {input[2]} -o {output}"
+
