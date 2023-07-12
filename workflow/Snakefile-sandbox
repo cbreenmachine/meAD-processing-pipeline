@@ -1,0 +1,19 @@
+
+rule gem3_map:
+    input:
+        "../data/reference/GCA_000001405.15_GRCh38_no_alt_analysis_set.BS.gem",
+        "data/samples/{sample_id}*R1_001.fq.gz",
+        "data/samples/{sample_id}*R2_001.fq.gz",
+    output:
+        "samples-mapped/{sample_id}.bam",
+        "samples-mapped/{sample_id}.json"
+    log:
+        "samples-mapped/{sample_id}.log"
+    threads: 6
+    conda: "gem3"
+    shell:
+        "gem-mapper --index {input[0]} \
+                --threads {threads} \
+                --report-file {output[1]} \
+                --i1 {input[1]} --i2 {input[2]} --output {output[0]}
+
